@@ -73,29 +73,33 @@ $.widget('ui.stylizer', {
     var self = this;
     var group, prop, obj, html, value, groupElement, formItem;
     var data = $.ui.stylizer.elements;
+    var $table = $('<table></table>').appendTo(this.content);
+    var $tr = $('<tr></tr>').appendTo($table);
     for (group in data) {
-      html = '<div id="ui-stylizer-group-' + group + '" class="ui-stylizer-form-group"></div>';
-      groupElement = $(html).appendTo(self.content);
+      html = '<td><div id="ui-stylizer-group-' + group + '" class="ui-stylizer-form-group"></div></td>';
+      groupElement = $(html).appendTo($tr).find('.ui-stylizer-form-group');
 
       for (prop in data[group]) {
         obj = data[group][prop];
         obj.id = 'ui-stylizer-input-' + prop;
         obj.property = prop;
-        formItem = $('<div class="form-item" />').appendTo(groupElement);
-        formItem.append('<label for="' + obj.id + '">' + obj.title + ': </label>');
-        switch (obj.type) {
-          case 'select':
-            formItem.append(self._createSelect(obj));
-            break;
-
-          case 'number':
-            formItem.append(self._createNumber(obj));
-            break;
-
-          case 'color':
-            formItem.append(self._createColor(obj));
-            break;
-        }
+        formItem = $('<div class="form-item" />').appendTo(groupElement).stylizerInput(obj);
+        // switch (obj.type) {
+        //   case 'select':
+        //     formItem.append(self._createSelect(obj));
+        //     break;
+        // 
+        //   case 'number':
+        //     formItem.append(self._createNumber(obj));
+        //     break;
+        // 
+        //   case 'color':
+        //     formItem.append(self._createColor(obj));
+        //     break;
+        // }
+        // console.log(obj);
+        // formItem.wrapInner('<div class="form-widget" />');
+        // formItem.prepend('<label for="' + obj.id + '">' + obj.title + ': </label>');
       }
     }
     
@@ -114,8 +118,7 @@ $.widget('ui.stylizer', {
       html += '<option value="' + value + '">' + obj.options[value] + '</option>';
     }
     html += '</select>';
-    //return $(html).stylizerInput();
-    return $(html);
+    return $(html).stylizerInput();
   },
   
   _createColor: function(obj) {
@@ -126,8 +129,7 @@ $.widget('ui.stylizer', {
   
   _createNumber: function(obj) {
     html = '<input type="text" size="10" id="' + obj.id + '" rel="' + obj.property + '" />';
-    //return $(html).stylizerInput(obj);
-    return $(html);
+    return $(html).stylizerInput(obj);
   },
   
   _setTitle: function(newValue) {

@@ -46,3 +46,22 @@
   -moz-box-shadow: 0px 0px 3px #ff0;  
 }
 
+.ui-stylizer .ui-widget-content table {
+  border: 0;
+  border-collapse: separate;
+  width: 100%;
+}
+.ui-stylizer .ui-widget-content table td {
+  vertical-align: top;
+}
+.ui-stylizer .ui-widget-content table .form-item {
+  padding: .5em 0;
+}
+.ui-stylizer .ui-widget-content table .form-item label {
+  float: left;
+  text-align: left;
+  width: 100px;
+}
+.ui-stylizer .ui-widget-content table .form-widget {
+  margin-left: 120px;
+}
