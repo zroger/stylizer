@@ -25,6 +25,7 @@ $.widget('ui.stylable', {
   activate: function() {
     this.activated = true;
     this.showIndicator();
+    //$('.ui-stylizer').stylizer('edit', this.element);
     $('.ui-stylizer').stylizer('edit', this.element);
     $('.ui-stylable').not(this.element).stylable('deactivate');
   },
@@ -59,6 +60,8 @@ $.widget('ui.stylable', {
   },
   
   _positionIndicator: function() {
+    if (!this.indicator) return;
+
     this.indicator
       .css(this.element.offset())
       .width(this.element.outerWidth())
@@ -96,7 +99,8 @@ $.extend($.ui.stylable, {
     selector: '',
     title: '',
     sessionCookie: '',
-    useIndicator: true
+    useIndicator: true,
+    form: 'default'
   },
   getter: 'export'
 });

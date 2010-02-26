@@ -2,11 +2,7 @@
   
 $.widget('ui.stylizerInput', {
   _init: function() {
-    this.element
-      .addClass('ui-stylizer-input-wrapper')
-      .change(function() {
-        $(this).stylizerInput('applyStyle');
-      });
+    this.element.addClass('ui-stylizer-input-wrapper');
     
     this.inputType = '';
     if ($.ui.stylizerInput.inputs[this.options.type]) {
@@ -30,58 +26,42 @@ $.widget('ui.stylizerInput', {
     this.refresh();
   },
 
+  activate: function(selector) {
+    this.options.selector = selector;
+    this.enable();
+  },
+
   enable: function() {
-    this.element.removeAttr('disabled');
+    if (!this.options.selector) {
+      this.disable();
+      return;
+    }
+    this.input[this.inputType]('enable');
   },
   
   disable: function() {
-    this.element.val('');
-    this.element.attr('disabled', 'disabled');
+    this.input[this.inputType]('disable');
   },
   
   refresh: function() {
-    if (this.options.selector) {
-      this.element.val(this.currentValue());
-      this.enable();
-    }
-    else {
-      this.disable();
-    }
+    this.input[this.inputType]('refresh');
   },
 
   applyStyle: function() {
-    var val = this.element.val();
-    console.log(val);
-    $(this.options.selector).stylable('applyStyle', this.property, val);
+    var val = this.value();
+    $(this.options.selector).stylable('applyStyle', this.options.property, val);
   },
 
   value: function() {
-    return this._normalizeValue(this.element.val());
+    return this.input[this.inputType]('value');
   },
 
   defaultValue: function() {
-    $(this.options.selector).css(this.property, '');
-    var val = this._normalizeValue($(this.options.selector).css(this.property));
-    return val;
+    return this.input[this.inputType]('defaultValue');
   },
 
   currentValue: function() {
-    var val = this._normalizeValue($(this.options.selector).css(this.property));
-    return val;
-  },
-
-  _normalizeValue: function(val) {
-    switch (this.property) {
-      case 'font-family':
-        val = val.split(',')[0].replace(/^\s*/, "").replace(/\s*$/, "").toLowerCase();
-        break;
-      case 'color':
-        if (val.match(/^#[0-9a-fA-F]$/)) {
-          return val;
-        }
-        return $.ui.stylizerInput.rgb2hex(val);
-    }
-    return val;
+    return this.input[this.inputType]('currentValue');
   }
   
 });
@@ -114,11 +94,61 @@ $.extend($.ui.stylizerInput, {
  * Stylizer Input Base class.
  */
 $.ui.stylizerInputBase = {
-  label: null,
   input: null,
+
   value: function(newValue) {
     return this.input.val(newValue);
+  },
+
+  _setData: function(key, value) {
+    $.widget.prototype._setData.apply(this, arguments);
+    this.refresh();
+  },
+
+  enable: function() {
+    this.input.removeAttr('disabled');
+  },
+  
+  disable: function() {
+    this.input.val('');
+    this.input.attr('disabled', 'disabled');
+  },
+  
+  refresh: function() {
+    if (this.options.selector) {
+      this.input.val(this.currentValue());
+      this.enable();
+    }
+    else {
+      this.disable();
+    }
+  },
+  
+  defaultValue: function() {
+    $(this.options.selector).css(this.property, '');
+    var val = this._normalizeValue($(this.options.selector).css(this.property));
+    return val;
+  },
+
+  currentValue: function() {
+    var val = this._normalizeValue($(this.options.selector).css(this.property));
+    return val;
+  },
+
+  _normalizeValue: function(val) {
+    switch (this.property) {
+      case 'font-family':
+        val = val.split(',')[0].replace(/^\s*/, "").replace(/\s*$/, "").toLowerCase();
+        break;
+      case 'color':
+        if (val.match(/^#[0-9a-fA-F]$/)) {
+          return val;
+        }
+        return $.ui.stylizerInput.rgb2hex(val);
+    }
+    return val;
   }
+
 };
 
 $.widget('ui.stylizerInputDefault', $.extend({}, $.ui.stylizerInputBase, {
@@ -128,8 +158,13 @@ $.widget('ui.stylizerInputDefault', $.extend({}, $.ui.stylizerInputBase, {
     this.input = $('<input type="text" class="form-text" />')
       .attr('id', this.options.id)
       .attr('rel', this.options.property)
-      .appendTo(this.element);
-  }
+      .appendTo(this.element)
+      .change(function() {
+        $(this).parents('.ui-stylizer-input-wrapper').stylizerInput('applyStyle');
+      });
+
+    this.refresh();
+  }  
 }));
 
 $.extend($.ui.stylizerInputDefault, {
@@ -149,7 +184,12 @@ $.widget('ui.stylizerInputNumber', $.extend({}, $.ui.stylizerInputBase, {
     this.input = $('<input type="text" class="form-text" size="10" />')
       .attr('id', this.options.id)
       .attr('rel', this.options.property)
-      .appendTo(this.element);
+      .appendTo(this.element)
+      .change(function() {
+        $(this).parents('.ui-stylizer-input-wrapper').stylizerInput('applyStyle');
+      });
+    
+    this.refresh();
   }
 }));
 
@@ -170,12 +210,17 @@ $.widget('ui.stylizerInputSelect', $.extend({}, $.ui.stylizerInputBase, {
     this.input = $('<select class="form-select"></select>')
       .attr('id', this.options.id)
       .attr('rel', this.options.property)
-      .appendTo(this.element);
+      .appendTo(this.element)
+      .change(function() {
+        $(this).parents('.ui-stylizer-input-wrapper').stylizerInput('applyStyle');
+      });
 
     var i;
     for (i in this.options.options) {
       $('<option value="' + i + '">' + this.options.options[i] + '</option>').appendTo(this.input);
     }
+
+    this.refresh();
   }
 }));
 

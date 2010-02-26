@@ -42,6 +42,7 @@
   vertical-align: top;
 }
 .ui-stylizer-input-wrapper {
+  clear: both;
   padding: 2px 0;
 }
 .ui-stylizer-input-wrapper label {

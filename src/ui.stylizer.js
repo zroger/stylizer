@@ -1,6 +1,8 @@
 (function($) {
 
 $.widget('ui.stylizer', {
+  forms: [],
+  
   _init: function() {
     this.element.addClass('ui-stylizer');
 
@@ -26,15 +28,14 @@ $.widget('ui.stylizer', {
     this.spacer = $('<div class="ui-stylizer-spacer" />')
       .appendTo('body');
 
-    var self = this;
-    // this.content.load('stylizer.form.html', function() {
-      self._afterLoad();
-    // });
+    this._buildForm('default', $.ui.stylizer.configs.default);
 
     for (var i in this.options.selectors) {
       var title = this.options.selectors[i];
       $(i).stylable({selector: i, title: title});
     }
+
+    this._resizeSpacer();
 
     $(window).unload(function() {
       $('.ui-stylizer').stylizer('sessionSave');
@@ -71,77 +72,35 @@ $.widget('ui.stylizer', {
     });
   },
 
-  _afterLoad: function() {
-    this.content.empty();
-    var self = this;
-    var group, prop, obj, html, value, groupElement, formItem;
-    var data = $.ui.stylizer.elements;
-    var $table = $('<table></table>').appendTo(this.content);
-    var $tr = $('<tr></tr>').appendTo($table);
-    for (group in data) {
-      html = '<td><div id="ui-stylizer-group-' + group + '" class="ui-stylizer-form-group"></div></td>';
-      groupElement = $(html).appendTo($tr).find('.ui-stylizer-form-group');
+  _buildForm: function(name, elements, reset) {
+    if (reset && this.forms[name]) {
+      this.forms[name].remove();
+      this.forms[name] = null;
+    }
 
-      for (prop in data[group]) {
-        obj = data[group][prop];
-        obj.id = 'ui-stylizer-input-' + prop;
-        obj.property = prop;
-        formItem = $('<div class="form-item" />').appendTo(groupElement).stylizerInput(obj);
-        // switch (obj.type) {
-        //   case 'select':
-        //     formItem.append(self._createSelect(obj));
-        //     break;
-        // 
-        //   case 'number':
-        //     formItem.append(self._createNumber(obj));
-        //     break;
-        // 
-        //   case 'color':
-        //     formItem.append(self._createColor(obj));
-        //     break;
-        // }
-        // console.log(obj);
-        // formItem.wrapInner('<div class="form-widget" />');
-        // formItem.prepend('<label for="' + obj.id + '">' + obj.title + ': </label>');
-      }
+    if (!this.forms[name]) {
+      this.forms[name] = $('<div />')
+        .appendTo(this.content)
+        .stylizerForm({
+          elements: elements
+        });
     }
-    
-    var h = 0;
-    self.content.show();
-    self.content.find('.ui-stylizer-form-group').each(function() {
-      h = Math.max(h, $(this).outerHeight());
-    });
-    self.content.hide();
-    self.content.height(h);
   },
   
-  _createSelect: function(obj) {
-    html = '<select id="' + obj.id + '" rel="' + obj.property + '">';
-    for (value in obj.options) {
-      html += '<option value="' + value + '">' + obj.options[value] + '</option>';
+  _activateForm: function(name, selector) {
+    this._buildForm(name);
+    for(i in this.forms) {
+      this.forms[i].hide().stylizerForm('disable');
     }
-    html += '</select>';
-    return $(html).stylizerInput();
+    this.forms[name].show();
+    if (selector) {
+      this.forms[name].stylizerForm('activate', selector);
+    }
+    this.forms[name].stylizerForm('enable');
   },
-  
-  _createColor: function(obj) {
-    html = '<input type="text" size="10" id="' + obj.id + '" rel="' + obj.property + '" />';
-    //return $(html).stylizerInput(obj);
-    return $(html);
-  },
-  
-  _createNumber: function(obj) {
-    html = '<input type="text" size="10" id="' + obj.id + '" rel="' + obj.property + '" />';
-    return $(html).stylizerInput(obj);
-  },
-  
+
   _setTitle: function(newValue) {
     return;
-    newValue = newValue || this.options.title;
-    var current = this.currentSelector ? this.options.selectors[this.currentSelector] : 'Select an item to start';
-    var replace = '<span class="ui-stylizer-current">' + current + '</span>';
-    newValue = newValue.replace('%current', replace);
-    this.element.find('.ui-stylizer-title').html(newValue);
   },
 
   _setData: function(key, value) {
@@ -153,10 +112,16 @@ $.widget('ui.stylizer', {
     $.widget.prototype._setData.apply(this, arguments);
   },
 
-  show: function() {
+  _resizeSpacer: function() {
+    this.spacer.height(this.element.height());
+  },
+  
+  show: function(form) {
+    this._activateForm(form);
+
     var self = this;
     this.content.slideDown('slow', function() {
-      self.spacer.height(self.element.height());
+      self._resizeSpacer();
     });
     this.titleBar.find('.ui-icon-triangle-1-n')
       .removeClass('ui-icon-triangle-1-n')
@@ -166,7 +131,7 @@ $.widget('ui.stylizer', {
   hide: function() {
     var self = this;
     this.content.slideUp('slow', function() {
-      self.spacer.height(0);
+      self._resizeSpacer();
     });
     this.unloadSelector();
     this.titleBar.find('.ui-icon-triangle-1-s')
@@ -183,13 +148,15 @@ $.widget('ui.stylizer', {
     }
   },
   
+  refresh: function() {
+    if (this.currentSelector) {
+      this.selector.val(this.currentSelector);
+    }
+  },
+
   loadSelector: function(selector) {
     this.currentSelector = selector;
-    //this.selector.val(selector);
-    this.content.find(':input').each(function() {
-      $(this).stylizerInput('option', 'selector', selector);
-    });
-    this._setTitle();
+    this.refresh();
   },
   
   unloadSelector: function() {
@@ -211,6 +178,9 @@ $.widget('ui.stylizer', {
       this.show();
     }
     this.loadSelector(selector);
+    
+    var form = $(element).stylable('option', 'form');
+    this._activateForm(form, selector);
   },
   
   getExport: function() {
@@ -260,10 +230,6 @@ $.widget('ui.stylizer', {
            $(selector).stylable('applyStyle', prop, data[selector][prop]);
         }
       }
-      console.log(data);
-    }
-    else {
-      console.log('nothing to load');
     }
   }
 });
@@ -275,65 +241,11 @@ $.extend($.ui.stylizer, {
     title: 'Stylizer: '
   },
   configs: {
-    'all': [
+    'default': [
       ['font-family', 'font-size', 'font-weight', 'font-style', 'color', 'line-height'],
       ['padding-top', 'padding-bottom', 'padding-left', 'padding-right', 'margin-top', 'margin-bottom', 'margin-left', 'margin-right'],
       ['border-top-width', 'border-bottom-width', 'border-left-width', 'border-right-width', 'border-color', 'border-style']
     ]
-  },
-  elements: {
-    'font-settings': {
-      'font-family': {title: 'Font', type: 'select', options: {
-        'arial': 'Arial',
-        'courier': 'Courier',
-        'georgia': 'Georgia',
-        'tahoma': 'Tahoma',
-        'trebuchet ms': 'Trebuchet MS',
-        'verdana': 'Verdana'
-      }},
-      'font-size': {title: 'Font size', type: 'number', min: 8, max: 300},
-      'font-weight': {title: 'Font weight', type: 'select', options: {
-        'normal': 'Normal',
-        'bold': 'Bold'
-      }},
-      'font-style': {title: 'Font style', type: 'select', options: {
-        'normal': 'Normal',
-        'italic': 'Italic'
-      }},
-      'color': {title: 'Text color', type: 'color'},
-      'line-height': {title: 'Line height', type: 'number', min: 8, max: 300}
-    },
-
-    'spacing': {
-      'padding-top':    {title: 'Padding top', type: 'number', min: 0},
-      'padding-bottom': {title: 'Padding bottom', type: 'number', min: 0},
-      'padding-left':   {title: 'Padding left', type: 'number', min: 0},
-      'padding-right':  {title: 'Padding right', type: 'number', min: 0},
-
-      'margin-top':    {title: 'Margin top', type: 'number'},
-      'margin-bottom': {title: 'Margin bottom', type: 'number'},
-      'margin-left':   {title: 'Margin left', type: 'number'},
-      'margin-right':  {title: 'Margin right', type: 'number'}
-    },
-
-    border: {
-      'border-top-width':    {title: 'Border top', type: 'number', min: 0},
-      'border-bottom-width': {title: 'Border bottom', type: 'number', min: 0},
-      'border-left-width':   {title: 'Border left', type: 'number', min: 0},
-      'border-right-width':  {title: 'Border right', type: 'number', min: 0},
-      'border-color': {title: 'Border color', type: 'color'},
-      'border-style': {title: 'Border style', type: 'select', 'options': {
-        'none': 'None', 
-        'dotted': 'Dotted',
-        'dashed': 'Dashed',
-        'solid': 'Solid',
-        'double': 'Double',
-        'groove': 'Groove',
-        'ridge': 'Ridge',
-        'inset': 'Inset',
-        'outset': 'Outset'
-      }}
-    }  
   },
   getter: 'getExport'
 });
