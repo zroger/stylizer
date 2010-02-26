@@ -35,10 +35,9 @@ $.widget('ui.stylable', {
   },
   
   _createIndicator: function() {
-    var html = '<div class="ui-stylable-indicator ui-corner-all">' +
-      '<div class="ui-stylizer-indicator-title ui-corner-all">' + this.options.title + '</div>' +
-      '</div>';
+    var html = '<div class="ui-stylable-indicator ui-corner-all"></div>';
     this.indicator = $(html)
+      .attr('title', this.options.title)
       .appendTo('body')
       .data('stylable', this)
       .click(function() {
