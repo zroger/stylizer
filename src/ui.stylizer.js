@@ -89,10 +89,14 @@ $.widget('ui.stylizer', {
   
   _activateForm: function(name, selector) {
     this._buildForm(name);
+    
     for(i in this.forms) {
-      this.forms[i].hide().stylizerForm('disable');
+      if (i != name) {
+        this.forms[i].hide().stylizerForm('disable');
+      }
     }
     this.forms[name].show();
+
     if (selector) {
       this.forms[name].stylizerForm('activate', selector);
     }

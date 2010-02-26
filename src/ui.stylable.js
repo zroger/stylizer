@@ -28,6 +28,7 @@ $.widget('ui.stylable', {
     //$('.ui-stylizer').stylizer('edit', this.element);
     $('.ui-stylizer').stylizer('edit', this.element);
     $('.ui-stylable').not(this.element).stylable('deactivate');
+    this.element[0].scrollIntoView();
   },
 
   deactivate: function() {

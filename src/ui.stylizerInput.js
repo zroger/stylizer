@@ -28,6 +28,7 @@ $.widget('ui.stylizerInput', {
 
   activate: function(selector) {
     this.options.selector = selector;
+    this.input[this.inputType]('option', 'selector', selector);
     this.enable();
   },
 
@@ -78,6 +79,7 @@ $.extend($.ui.stylizerInput, {
     // 'color': 'stylizerInputColor',
     'select': 'stylizerInputSelect'
   },
+  getter: 'value',
 
   //Function to convert hex format to a rgb color
   rgb2hex: function(rgb) {
@@ -96,8 +98,21 @@ $.extend($.ui.stylizerInput, {
 $.ui.stylizerInputBase = {
   input: null,
 
+  _init: function() {
+    this.element.addClass('ui-stylizer-input');
+    this._initInput();
+    this.refresh();
+  },
+  
+  _initInput: function() {},
+
   value: function(newValue) {
-    return this.input.val(newValue);
+    var undefined;
+    if (newValue != undefined) {
+      this.input.val(newValue);
+      this.update();
+    }
+    return this.input.val();
   },
 
   _setData: function(key, value) {
@@ -126,13 +141,16 @@ $.ui.stylizerInputBase = {
   
   defaultValue: function() {
     $(this.options.selector).css(this.property, '');
-    var val = this._normalizeValue($(this.options.selector).css(this.property));
+    var val = this._normalizeValue($(this.options.selector).css(this.options.property));
     return val;
   },
 
   currentValue: function() {
-    var val = this._normalizeValue($(this.options.selector).css(this.property));
-    return val;
+    if (!this.options.selector) {
+      return '';
+    }
+    var val = $(this.options.selector).css(this.options.property);
+    return this._normalizeValue(val);
   },
 
   _normalizeValue: function(val) {
@@ -147,14 +165,16 @@ $.ui.stylizerInputBase = {
         return $.ui.stylizerInput.rgb2hex(val);
     }
     return val;
+  },
+  
+  update: function() {
+    this.element.parents('.ui-stylizer-input-wrapper').stylizerInput('applyStyle');
   }
 
 };
 
 $.widget('ui.stylizerInputDefault', $.extend({}, $.ui.stylizerInputBase, {
-  _init: function() {
-    this.element.addClass('ui-stylizer-input');
-
+  _initInput: function() {
     this.input = $('<input type="text" class="form-text" />')
       .attr('id', this.options.id)
       .attr('rel', this.options.property)
@@ -162,8 +182,6 @@ $.widget('ui.stylizerInputDefault', $.extend({}, $.ui.stylizerInputBase, {
       .change(function() {
         $(this).parents('.ui-stylizer-input-wrapper').stylizerInput('applyStyle');
       });
-
-    this.refresh();
   }  
 }));
 
@@ -173,23 +191,35 @@ $.extend($.ui.stylizerInputDefault, {
     selector: '',
     type: 'default'
   },
-  getter: 'value',
-  setter: 'value'
+  getter: 'value'
 });
 
 $.widget('ui.stylizerInputNumber', $.extend({}, $.ui.stylizerInputBase, {
-  _init: function() {
-    this.element.addClass('ui-stylizer-input');
-
+  _initInput: function() {
     this.input = $('<input type="text" class="form-text" size="10" />')
       .attr('id', this.options.id)
       .attr('rel', this.options.property)
       .appendTo(this.element)
       .change(function() {
         $(this).parents('.ui-stylizer-input-wrapper').stylizerInput('applyStyle');
+      })
+      .keypress(function(e) {
+        // Up
+        if (e.keyCode == 40) {
+          var val = $(this).parents('.ui-stylizer-input').stylizerInputNumber('value');
+          val = parseInt(val, 10);
+          $(this).parents('.ui-stylizer-input')
+            .stylizerInputNumber('value', (val - 1) + 'px');
+          return false;
+        }
+        else if (e.keyCode == 38) {
+          var val = $(this).parents('.ui-stylizer-input').stylizerInputNumber('value');
+          val = parseInt(val, 10);
+          $(this).parents('.ui-stylizer-input')
+            .stylizerInputNumber('value', (val + 1) + 'px');
+          return false;
+        }
       });
-    
-    this.refresh();
   }
 }));
 
@@ -199,14 +229,11 @@ $.extend($.ui.stylizerInputNumber, {
     selector: '',
     type: 'default'
   },
-  getter: 'value',
-  setter: 'value'
+  getter: 'value'
 });
 
 $.widget('ui.stylizerInputSelect', $.extend({}, $.ui.stylizerInputBase, {
-  _init: function() {
-    this.element.addClass('ui-stylizer-input');
-
+  _initInput: function() {
     this.input = $('<select class="form-select"></select>')
       .attr('id', this.options.id)
       .attr('rel', this.options.property)
@@ -219,8 +246,6 @@ $.widget('ui.stylizerInputSelect', $.extend({}, $.ui.stylizerInputBase, {
     for (i in this.options.options) {
       $('<option value="' + i + '">' + this.options.options[i] + '</option>').appendTo(this.input);
     }
-
-    this.refresh();
   }
 }));
 
@@ -230,8 +255,7 @@ $.extend($.ui.stylizerInputSelect, {
     selector: '',
     type: 'default'
   },
-  getter: 'value',
-  setter: 'value'
+  getter: 'value'
 });
 
 
