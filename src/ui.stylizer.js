@@ -22,6 +22,9 @@ $.widget('ui.stylizer', {
     this.content = $('<div class="ui-widget-content ui-helper-clearfix" />')
       .hide()
       .appendTo(this.element);
+      
+    this.spacer = $('<div class="ui-stylizer-spacer" />')
+      .appendTo('body');
 
     var self = this;
     // this.content.load('stylizer.form.html', function() {
@@ -151,14 +154,20 @@ $.widget('ui.stylizer', {
   },
 
   show: function() {
-    this.content.slideDown('slow');
+    var self = this;
+    this.content.slideDown('slow', function() {
+      self.spacer.height(self.element.height());
+    });
     this.titleBar.find('.ui-icon-triangle-1-n')
       .removeClass('ui-icon-triangle-1-n')
       .addClass('ui-icon-triangle-1-s');
   },
   
   hide: function() {
-    this.content.slideUp('slow');    
+    var self = this;
+    this.content.slideUp('slow', function() {
+      self.spacer.height(0);
+    });
     this.unloadSelector();
     this.titleBar.find('.ui-icon-triangle-1-s')
       .removeClass('ui-icon-triangle-1-s')

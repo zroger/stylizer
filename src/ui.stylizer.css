@@ -41,14 +41,14 @@
 .ui-stylizer .ui-widget-content table td {
   vertical-align: top;
 }
-.ui-stylizer .ui-widget-content table .form-item {
-  padding: .5em 0;
+.ui-stylizer-input-wrapper {
+  padding: 2px 0;
 }
-.ui-stylizer .ui-widget-content table .form-item label {
+.ui-stylizer-input-wrapper label {
   float: left;
   text-align: left;
   width: 100px;
 }
-.ui-stylizer .ui-widget-content table .form-widget {
+.ui-stylizer-input-wrapper .ui-stylizer-input {
   margin-left: 120px;
 }

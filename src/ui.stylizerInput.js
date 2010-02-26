@@ -3,20 +3,24 @@
 $.widget('ui.stylizerInput', {
   _init: function() {
     this.element
-      .addClass('ui-stylizer-input')
+      .addClass('ui-stylizer-input-wrapper')
       .change(function() {
         $(this).stylizerInput('applyStyle');
       });
     
-    this.widgetType = '';
-    if ($.ui.stylizerInput.widgets[this.options.type]) {
-      this.widgetType = $.ui.stylizerInput.widgets[this.options.type];
+    this.inputType = '';
+    if ($.ui.stylizerInput.inputs[this.options.type]) {
+      this.inputType = $.ui.stylizerInput.inputs[this.options.type];
     }
     else {
-      this.widgetType = $.ui.stylizerInput.widgets.default;
+      this.inputType = $.ui.stylizerInput.inputs.default;
     }
-
-    this.element[this.widgetType](this.options);
+    
+    this.label = $('<label>' + this.options.title + '</label>')
+      .attr('for', this.options.id)
+      .appendTo(this.element);
+    this.input = $('<div />').appendTo(this.element);
+    this.input[this.inputType](this.options);
 
     this.refresh();
   },
@@ -88,11 +92,11 @@ $.extend($.ui.stylizerInput, {
     selector: '',
     type: 'default'
   },
-  widgets: {
-    'default': 'stylizerWidgetDefault',
-    'number': 'stylizerWidgetNumber',
-    // 'color': 'stylizerWidgetColor',
-    'select': 'stylizerWidgetSelect'
+  inputs: {
+    'default': 'stylizerInputDefault',
+    'number': 'stylizerInputNumber',
+    // 'color': 'stylizerInputColor',
+    'select': 'stylizerInputSelect'
   },
 
   //Function to convert hex format to a rgb color
@@ -107,31 +111,28 @@ $.extend($.ui.stylizerInput, {
 });
 
 /**
- * Stylizer Widget Base class.
+ * Stylizer Input Base class.
  */
-$.ui.stylizerWidgetBase = {
+$.ui.stylizerInputBase = {
   label: null,
-  widget: null,
+  input: null,
   value: function(newValue) {
-    return this.widget.val(newValue);
+    return this.input.val(newValue);
   }
 };
 
-$.widget('ui.stylizerWidgetDefault', $.extend({}, $.ui.stylizerWidgetBase, {
+$.widget('ui.stylizerInputDefault', $.extend({}, $.ui.stylizerInputBase, {
   _init: function() {
-    this.widget = $('<input type="text" class="form-text" />')
+    this.element.addClass('ui-stylizer-input');
+
+    this.input = $('<input type="text" class="form-text" />')
       .attr('id', this.options.id)
       .attr('rel', this.options.property)
-      .appendTo(this.element)
-      .wrap('<div class="form-widget" />');
-
-    this.label = $('<label>' + this.options.title + '</label>')
-      .attr('for', this.options.id)
-      .prependTo(this.element);
+      .appendTo(this.element);
   }
 }));
 
-$.extend($.ui.stylizerWidgetDefault, {
+$.extend($.ui.stylizerInputDefault, {
   version: "1.7.2",
   defaults: {
     selector: '',
@@ -141,21 +142,18 @@ $.extend($.ui.stylizerWidgetDefault, {
   setter: 'value'
 });
 
-$.widget('ui.stylizerWidgetNumber', $.extend({}, $.ui.stylizerWidgetBase, {
+$.widget('ui.stylizerInputNumber', $.extend({}, $.ui.stylizerInputBase, {
   _init: function() {
-    this.widget = $('<input type="text" class="form-text" size="10" />')
+    this.element.addClass('ui-stylizer-input');
+
+    this.input = $('<input type="text" class="form-text" size="10" />')
       .attr('id', this.options.id)
       .attr('rel', this.options.property)
-      .appendTo(this.element)
-      .wrap('<div class="form-widget" />');
-
-    this.label = $('<label>' + this.options.title + '</label>')
-      .attr('for', this.options.id)
-      .prependTo(this.element);
+      .appendTo(this.element);
   }
 }));
 
-$.extend($.ui.stylizerWidgetNumber, {
+$.extend($.ui.stylizerInputNumber, {
   version: "1.7.2",
   defaults: {
     selector: '',
@@ -165,29 +163,23 @@ $.extend($.ui.stylizerWidgetNumber, {
   setter: 'value'
 });
 
-$.widget('ui.stylizerWidgetSelect', $.extend({}, $.ui.stylizerWidgetBase, {
+$.widget('ui.stylizerInputSelect', $.extend({}, $.ui.stylizerInputBase, {
   _init: function() {
-    console.log(this.options);
-    this.widget = $('<select class="form-select"></select>')
+    this.element.addClass('ui-stylizer-input');
+
+    this.input = $('<select class="form-select"></select>')
       .attr('id', this.options.id)
       .attr('rel', this.options.property)
-      .appendTo(this.element)
-      .wrap('<div class="form-widget" />');
+      .appendTo(this.element);
 
     var i;
     for (i in this.options.options) {
-      console.log(i);
-      console.log(this.options.options[i]);
-      $('<option value="' + i + '">' + this.options.options[i] + '</option>').appendTo(this.widget);
+      $('<option value="' + i + '">' + this.options.options[i] + '</option>').appendTo(this.input);
     }
-
-    this.label = $('<label>' + this.options.title + '</label>')
-      .attr('for', this.options.id)
-      .prependTo(this.element);
   }
 }));
 
-$.extend($.ui.stylizerWidgetSelect, {
+$.extend($.ui.stylizerInputSelect, {
   version: "1.7.2",
   defaults: {
     selector: '',
