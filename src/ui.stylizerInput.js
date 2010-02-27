@@ -76,20 +76,10 @@ $.extend($.ui.stylizerInput, {
   inputs: {
     'default': 'stylizerInputDefault',
     'number': 'stylizerInputNumber',
-    // 'color': 'stylizerInputColor',
+    'color': 'stylizerInputColor',
     'select': 'stylizerInputSelect'
   },
-  getter: 'value',
-
-  //Function to convert hex format to a rgb color
-  rgb2hex: function(rgb) {
-   rgb = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
-   function hex(x) {
-    hexDigits = new Array("0","1","2","3","4","5","6","7","8","9","a","b","c","d","e","f");
-    return isNaN(x) ? "00" : hexDigits[(x - x % 16) / 16] + hexDigits[x % 16];
-   }
-   return "#" + hex(rgb[1]) + hex(rgb[2]) + hex(rgb[3]);
-  }
+  getter: 'value'
 });
 
 /**
@@ -101,6 +91,9 @@ $.ui.stylizerInputBase = {
   _init: function() {
     this.element.addClass('ui-stylizer-input');
     this._initInput();
+    this.input.bind('focus', {widget: this.widgetName}, function(e) {
+      $(this).parents('.ui-stylizer-input')[e.data.widget]('refresh');
+    });
     this.refresh();
   },
   
@@ -154,16 +147,6 @@ $.ui.stylizerInputBase = {
   },
 
   _normalizeValue: function(val) {
-    switch (this.property) {
-      case 'font-family':
-        val = val.split(',')[0].replace(/^\s*/, "").replace(/\s*$/, "").toLowerCase();
-        break;
-      case 'color':
-        if (val.match(/^#[0-9a-fA-F]$/)) {
-          return val;
-        }
-        return $.ui.stylizerInput.rgb2hex(val);
-    }
     return val;
   },
   
@@ -250,6 +233,46 @@ $.widget('ui.stylizerInputSelect', $.extend({}, $.ui.stylizerInputBase, {
 }));
 
 $.extend($.ui.stylizerInputSelect, {
+  version: "1.7.2",
+  defaults: {
+    selector: '',
+    type: 'default'
+  },
+  getter: 'value'
+});
+
+$.widget('ui.stylizerInputColor', $.extend({}, $.ui.stylizerInputBase, {
+  _initInput: function() {
+    this.input = $('<input type="text" class="form-text" size="10" />')
+      .attr('id', this.options.id)
+      .attr('rel', this.options.property)
+      .appendTo(this.element)
+      .change(function() {
+        $(this).parents('.ui-stylizer-input-wrapper').stylizerInput('applyStyle');
+      });
+  },
+  
+  _normalizeValue: function(val) {
+    var rgb;
+    if (val == "" || val == "transparent") {
+      return val;
+    }
+    else if (val.match(/^#[0-9a-fA-F]$/)) {
+      return val;
+    }
+    else if (rgb = val.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/)) {
+      var hex = function(rgb) {
+        return parseInt(rgb[1], 10).toString(16);
+      }
+      return '#' + hex(rgb[1]) + hex(rgb[2]) + hex(rgb[3]);
+    }
+    return '';
+    //return val;
+  }  
+
+}));
+
+$.extend($.ui.stylizerInputColor, {
   version: "1.7.2",
   defaults: {
     selector: '',
