@@ -53,3 +53,7 @@
 .ui-stylizer-input-wrapper .ui-stylizer-input {
   margin-left: 120px;
 }
+.ui-stylizer-input .form-text, 
+.ui-stylizer-input select {
+  border: solid 1px #999;
+}
